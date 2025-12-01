@@ -42,11 +42,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.chatter.data.model.Channel
 import com.example.chatter.ui.theme.ChatterTheme
-import com.example.chatter.ui.theme.DarkGray
+import com.example.chatter.ui.theme.ItemBg
+import com.example.chatter.ui.theme.OffBlack
+import com.example.chatter.ui.theme.Purple
 import com.example.chatter.utils.OneTimeScreenUiEvent
 
 @Composable
@@ -93,14 +95,14 @@ fun ScreenLayout(
         Column(
             modifier = modifier
                 .fillMaxSize()
-                .background(color = Color.Black)
+                .background(color = OffBlack)
         ) {
 
             Text(
                 text = "Messages",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Black,
-                color = Color.Gray,
+                color = Color.White,
                 modifier = Modifier.padding(16.dp)
             )
 
@@ -116,10 +118,10 @@ fun ScreenLayout(
                 singleLine = true,
                 shape = RoundedCornerShape(40.dp),
                 colors = TextFieldDefaults.colors().copy(
-                    unfocusedContainerColor = DarkGray,
-                    focusedContainerColor = DarkGray,
-                    focusedTextColor = Color.Gray,
-                    unfocusedTextColor = Color.Gray,
+                    unfocusedContainerColor = ItemBg,
+                    focusedContainerColor = ItemBg,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
                     focusedPlaceholderColor = Color.Gray,
                     unfocusedPlaceholderColor = Color.Gray,
                     focusedIndicatorColor = Color.Transparent,
@@ -176,7 +178,8 @@ fun ScreenLayout(
                         addChannelDialog.value = true
                     }, modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    containerColor = Purple
                 ) {
                     Text(text = "Add Channel", modifier = Modifier.padding(16.dp))
                 }
@@ -199,7 +202,7 @@ fun ChannelListItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 4.dp)
-            .background(color = DarkGray, shape = RoundedCornerShape(16.dp))
+            .background(color = ItemBg, shape = RoundedCornerShape(16.dp))
             .clickable(
                 onClick = { onChannelClick(channel.id, channel.name) }
             ), verticalAlignment = Alignment.CenterVertically
@@ -209,7 +212,7 @@ fun ChannelListItem(
                 .padding(8.dp)
                 .size(72.dp)
                 .background(
-                    color = Color.Yellow.copy(alpha = 0.3f),
+                    color = Purple.copy(alpha = 0.3f),
                     shape = CircleShape
                 ),
             contentAlignment = Alignment.Center

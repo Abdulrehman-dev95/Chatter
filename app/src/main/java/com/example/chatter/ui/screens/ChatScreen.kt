@@ -1,6 +1,7 @@
 package com.example.chatter.ui.screens
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
@@ -10,6 +11,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,11 +25,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.VideoCall
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -44,19 +51,23 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.rememberAsyncImagePainter
+import coil.compose.AsyncImage
+import com.example.chatter.CallActivity
 import com.example.chatter.R
 import com.example.chatter.data.model.Message
 import com.example.chatter.ui.theme.ChatterTheme
-import com.example.chatter.ui.theme.DarkGray
+import com.example.chatter.ui.theme.ItemBg
+import com.example.chatter.ui.theme.OffBlack
 import com.example.chatter.ui.theme.Purple
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -64,7 +75,7 @@ import java.io.File
 
 @Composable
 fun ChatScreen(modifier: Modifier = Modifier, channelId: String, channelName: String) {
-    val viewModel: ChatViewModel = hiltViewModel() 
+    val viewModel: ChatViewModel = hiltViewModel()
 
 
 
@@ -76,6 +87,7 @@ fun ChatScreen(modifier: Modifier = Modifier, channelId: String, channelName: St
 
     ChatScreenLayout(
         modifier = modifier,
+        channelId = channelId,
         channelName = channelName,
         uiState = uiState,
         onMessageChange = viewModel::onMessageChange,
@@ -87,17 +99,29 @@ fun ChatScreen(modifier: Modifier = Modifier, channelId: String, channelName: St
         }
     )
 
+
 }
 
 @Composable
 fun ChatScreenLayout(
     modifier: Modifier = Modifier,
+    channelId: String,
     channelName: String,
     uiState: ChatUIState,
     onMessageChange: (String) -> Unit,
     onSendMessage: () -> Unit,
     onImageClick: (Uri) -> Unit
 ) {
+    val userName = Firebase.auth.currentUser!!.displayName!!
+    val userId = Firebase.auth.currentUser!!.uid
+
+
+    val appID = 566529291L
+    val appSign = "13f48aa1d21d45f2969152627179851a18400ffa78209d666deb12ce247fc7b2"
+
+    val showImagePreviewDialog = remember {
+        mutableStateOf<String?>(null)
+    }
     val keyboardController = LocalSoftwareKeyboardController.current
     val imageOptionsDialog = remember {
         mutableStateOf(false)
@@ -140,32 +164,78 @@ fun ChatScreenLayout(
     }
 
 
+    fun startCall(isVideo: Boolean) {
+        val intent = Intent(context, CallActivity::class.java).apply {
+            putExtra("userID", userId)
+            putExtra("userName", userName)
+            putExtra("callID", channelId)
+            putExtra("appID", appID)
+            putExtra("appSign", appSign)
+            putExtra("isVideo", isVideo)
+        }
+        context.startActivity(intent)
+    }
+
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(OffBlack)
             .padding(horizontal = 4.dp)
 
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(color = DarkGray, shape = RoundedCornerShape(16.dp))
+                .padding(16.dp)
+                .background(color = ItemBg, shape = RoundedCornerShape(16.dp))
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = channelName,
                 color = Color.White,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(8.dp)
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier.weight(1f)
             )
+
+            Icon(
+                imageVector = Icons.Default.Call,
+                contentDescription = "Call Icon",
+                tint = Purple,
+                modifier = Modifier
+                    .size(32.dp)
+                    .clickable(
+                        onClick = {
+                            startCall(isVideo = false)
+                        }
+                    )
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Icon(
+                imageVector = Icons.Default.VideoCall,
+                contentDescription = "Video Call Icon",
+                tint = Purple,
+                modifier = Modifier
+                    .size(32.dp)
+                    .clickable {
+                        startCall(isVideo = true)
+                    }
+            )
+
         }
 
         LazyColumn(modifier = Modifier.weight(1f)) {
-            items(uiState.messages) {
-                val isCurrentUser = it.senderId == Firebase.auth.currentUser?.uid
+            items(uiState.messages) { chatMessage ->
+                val isCurrentUser = chatMessage.senderId == Firebase.auth.currentUser?.uid
                 ChatBubbleItem(
-                    message = it,
-                    isCurrentUser = isCurrentUser
+                    message = chatMessage,
+                    isCurrentUser = isCurrentUser,
+                    onImageClick = {
+                        showImagePreviewDialog.value = it
+                    }
                 )
             }
 
@@ -184,7 +254,7 @@ fun ChatScreenLayout(
                 Icon(
                     painter = painterResource(R.drawable.send),
                     contentDescription = "Send Message",
-                    tint = Color.Unspecified,
+                    tint = Purple,
                     modifier = Modifier.clickable(
                         onClick = onSendMessage,
                         enabled = uiState.message.isNotBlank(),
@@ -200,13 +270,13 @@ fun ChatScreenLayout(
                     Icon(
                         painter = painterResource(R.drawable.attach),
                         contentDescription = "Attach Files",
-                        tint = Color.Unspecified
+                        tint = Purple
                     )
                 }
             },
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = DarkGray,
-                unfocusedContainerColor = DarkGray,
+                focusedContainerColor = ItemBg,
+                unfocusedContainerColor = ItemBg,
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
                 focusedTrailingIconColor = Color.White,
@@ -240,22 +310,26 @@ fun ChatScreenLayout(
             )
         }
 
-
+        showImagePreviewDialog.value?.let {
+            ImagePreviewDialog(it) {
+                showImagePreviewDialog.value = null
+            }
+        }
     }
-
-
 }
+
 
 @Composable
 fun ChatBubbleItem(
     modifier: Modifier = Modifier,
     message: Message,
-    isCurrentUser: Boolean = false
+    isCurrentUser: Boolean = false,
+    onImageClick: (String) -> Unit = {}
 ) {
     val color = if (isCurrentUser) {
         Purple
     } else {
-        DarkGray
+        ItemBg
     }
 
     Row(
@@ -293,11 +367,15 @@ fun ChatBubbleItem(
             )
         ) {
             message.imageUrl?.let {
-                Image(
-                    painter = rememberAsyncImagePainter(model = it),
+                AsyncImage(
+                    model = it,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(200.dp)
+                    modifier = Modifier
+                        .size(200.dp)
+                        .clickable(
+                            onClick = { onImageClick.invoke(it) }
+                        )
                 )
             }
 
@@ -334,6 +412,7 @@ fun ImageOptionsDialog(
             TextButton(
                 onClick = {
                     onCameraClick()
+                    onDismissRequest()
                 }
             ) {
                 Text("Camera")
@@ -343,12 +422,53 @@ fun ImageOptionsDialog(
             TextButton(
                 onClick = {
                     onGalleryClick()
+                    onDismissRequest()
                 }
             ) {
                 Text("Gallery")
             }
         }
     )
+}
+
+@Composable
+fun ImagePreviewDialog(
+    imageUrl: String,
+    onDismiss: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.8f))
+                .clickable(onClick = onDismiss),
+            contentAlignment = Alignment.Center
+        ) {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = "Image Preview",
+                modifier = Modifier.fillMaxWidth(),
+                contentScale = ContentScale.Fit
+            )
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = Color.White
+                )
+            }
+        }
+    }
 }
 
 
@@ -369,5 +489,3 @@ fun ChatScreenUiPreview() {
     }
 
 }
-
-

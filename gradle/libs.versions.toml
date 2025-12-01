@@ -1,5 +1,5 @@
 [versions]
-agp = "8.13.0"
+agp = "8.13.1"
 coilCompose = "2.7.0"
 googleAuthLibraryOauth2Http = "1.40.0"
 hiltAndroid = "2.57.2"
@@ -20,6 +20,7 @@ firebaseDatabase = "22.0.1"
 firebaseMessaging = "25.0.1"
 storageKt = "3.2.5"
 volley = "1.2.1"
+appcompat = "1.7.1"
 
 
 [libraries]
@@ -50,6 +51,7 @@ firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging
 ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktorClientAndroid" }
 storage-kt = { module = "io.github.jan-tennert.supabase:storage-kt", version.ref = "storageKt" }
 volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

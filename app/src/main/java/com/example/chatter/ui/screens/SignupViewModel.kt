@@ -14,7 +14,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class SignupViewModel @Inject constructor(private val authenticationRepository: AuthenticationRepository) :
+class SignupViewModel @Inject constructor(
+    private val authenticationRepository: AuthenticationRepository
+) :
     ViewModel() {
     private val _signupUiState = MutableStateFlow(SignupUiState())
     val signupState = _signupUiState.asStateFlow()
@@ -115,6 +117,9 @@ class SignupViewModel @Inject constructor(private val authenticationRepository: 
                 if (result.isSuccess) {
                     _signupUiState.value =
                         _signupUiState.value.copy(isLoading = false)
+//                    initializeZegoCloud(
+//                        applicationContext = applicationContext
+//                    )
                     _eventFlow.emit(OneTimeScreenUiEvent.ShowToast("Signup successful"))
                     _eventFlow.emit(OneTimeScreenUiEvent.NavigateToOtherScreen)
                 } else {
@@ -127,6 +132,28 @@ class SignupViewModel @Inject constructor(private val authenticationRepository: 
 
         }
     }
+
+//    private fun initializeZegoCloud(applicationContext: Application) {
+//        val appId: Long = 566529291
+//        val appSign = "13f48aa1d21d45f2969152627179851a18400ffa78209d666deb12ce247fc7b2"
+//        val userId = Firebase.auth.currentUser!!.uid
+//        val userName = Firebase.auth.currentUser!!.displayName!!
+//
+//        val invitationConfig = ZegoUIKitPrebuiltCallInvitationConfig()
+//        val notificationConfig = ZegoNotificationConfig()
+//        notificationConfig.channelID = "Chatter-9515"
+//        notificationConfig.channelName = "Chatter Messages"
+//        invitationConfig.notificationConfig = notificationConfig
+//
+//        ZegoUIKitPrebuiltCallService.init(
+//            applicationContext,
+//            appId,
+//            appSign,
+//            userId,
+//            userName,
+//            invitationConfig
+//        )
+//    }
 
 
 }

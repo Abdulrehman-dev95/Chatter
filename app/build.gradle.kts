@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.chatter"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -31,7 +31,8 @@ android {
         buildConfigField(
             "String",
             "SUPABASE_KEY",
-            "\"${localProperties.getProperty("SUPABASE_KEY") ?: ""}\"")
+            "\"${localProperties.getProperty("SUPABASE_KEY") ?: ""}\""
+        )
 
     }
 
@@ -46,11 +47,12 @@ android {
     }
 
 
-kotlin {
-    jvmToolchain(21)
-}
+    kotlin {
+        jvmToolchain(21)
+    }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     packaging {
         resources {
@@ -80,13 +82,19 @@ dependencies {
     implementation(libs.firebase.database)
     implementation(libs.firebase.messaging)
     implementation(libs.volley)
+    implementation(libs.androidx.appcompat)
     ksp(libs.hilt.android.compiler)
     implementation(libs.hilt.compose)
     implementation(libs.storage.kt)
     implementation(libs.ktor.client.android)
     implementation(libs.coil.compose)
-    implementation (libs.google.auth.library.oauth2.http)
+    implementation(libs.google.auth.library.oauth2.http)
 
+// Zego Cloud UI Kit
+    implementation("com.github.ZEGOCLOUD:zego_uikit_prebuilt_call_android:latest.release")
+
+// To host the Fragment in Compose
+    implementation("androidx.fragment:fragment-compose:1.8.9") // Use the latest version
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
